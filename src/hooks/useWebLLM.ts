@@ -5,6 +5,10 @@ import {
   generateMinutes,
   checkWebGPUSupport,
 } from "../lib/llm-engine";
+import {
+  loadSelectedModelId,
+  saveSelectedModelId,
+} from "../lib/models";
 import type { ModelStatus, DownloadProgress } from "../types";
 
 export function useWebLLM() {
@@ -16,9 +20,17 @@ export function useWebLLM() {
   });
   const [output, setOutput] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedModelId, setSelectedModelIdState] = useState(loadSelectedModelId);
   const startTimeRef = useRef<number>(0);
 
-  const initialize = useCallback(async () => {
+  const setSelectedModelId = useCallback((id: string) => {
+    setSelectedModelIdState(id);
+    saveSelectedModelId(id);
+  }, []);
+
+  const initialize = useCallback(async (modelId?: string) => {
+    const targetModel = modelId || selectedModelId;
+
     if (!checkWebGPUSupport()) {
       setStatus("unsupported");
       return;
@@ -30,7 +42,7 @@ export function useWebLLM() {
       setStatus("downloading");
       startTimeRef.current = Date.now();
 
-      await initEngine((report: InitProgressReport) => {
+      await initEngine(targetModel, (report: InitProgressReport) => {
         const elapsed = (Date.now() - startTimeRef.current) / 1000;
         setProgress({
           progress: report.progress,
@@ -48,7 +60,7 @@ export function useWebLLM() {
       console.error("Model initialization failed:", err);
       setStatus("error");
     }
-  }, []);
+  }, [selectedModelId]);
 
   const generate = useCallback(async (inputText: string) => {
     if (!inputText.trim()) return "";
@@ -74,6 +86,8 @@ export function useWebLLM() {
     progress,
     output,
     isGenerating,
+    selectedModelId,
+    setSelectedModelId,
     initialize,
     generate,
     setOutput,

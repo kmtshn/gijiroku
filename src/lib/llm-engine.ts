@@ -4,8 +4,6 @@ import {
   type InitProgressReport,
 } from "@mlc-ai/web-llm";
 
-const MODEL_ID = "gemma-2-2b-it-q4f16_1-MLC";
-
 const SYSTEM_PROMPT = `あなたは優秀なビジネスアシスタントです。ユーザーから渡される雑多な商談メモや打ち合わせメモを解析し、以下の形式で構造化された議事録を日本語で作成してください。
 
 出力フォーマット:
@@ -28,15 +26,25 @@ const SYSTEM_PROMPT = `あなたは優秀なビジネスアシスタントです
 - 余計な前置きや説明は不要です。上記フォーマットのみを出力してください。`;
 
 let engine: MLCEngine | null = null;
+let currentModelId: string | null = null;
 
 export function checkWebGPUSupport(): boolean {
   return "gpu" in navigator && typeof (navigator as any).gpu !== "undefined";
 }
 
 export async function initEngine(
+  modelId: string,
   onProgress: (report: InitProgressReport) => void,
 ): Promise<MLCEngine> {
-  if (engine) return engine;
+  // If same model already loaded, return existing engine
+  if (engine && currentModelId === modelId) return engine;
+
+  // If switching model, reset engine
+  if (engine) {
+    engine.unload();
+    engine = null;
+    currentModelId = null;
+  }
 
   if (!checkWebGPUSupport()) {
     throw new Error(
@@ -44,11 +52,12 @@ export async function initEngine(
     );
   }
 
-  engine = await CreateMLCEngine(MODEL_ID, {
+  engine = await CreateMLCEngine(modelId, {
     initProgressCallback: onProgress,
     logLevel: "SILENT",
   });
 
+  currentModelId = modelId;
   return engine;
 }
 
@@ -90,4 +99,8 @@ export function getEngine(): MLCEngine | null {
 
 export function isEngineReady(): boolean {
   return engine !== null;
+}
+
+export function getCurrentModelId(): string | null {
+  return currentModelId;
 }

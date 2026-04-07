@@ -7,6 +7,7 @@ import HistoryPanel from "./components/HistoryPanel";
 import PrivacyBadge from "./components/PrivacyBadge";
 import { useTheme } from "./hooks/useTheme";
 import { useWebLLM } from "./hooks/useWebLLM";
+import { MODEL_OPTIONS } from "./lib/models";
 import {
   loadHistory,
   saveHistoryEntry,
@@ -24,6 +25,8 @@ function App() {
     progress,
     output,
     isGenerating,
+    selectedModelId,
+    setSelectedModelId,
     initialize,
     generate,
     setOutput,
@@ -75,6 +78,9 @@ function App() {
     setHistory([]);
   }, []);
 
+  const currentModel = MODEL_OPTIONS.find((m) => m.id === selectedModelId);
+  const modelLabel = currentModel?.label || "AI";
+
   return (
     <div className="min-h-dvh flex flex-col bg-slate-50 dark:bg-slate-950">
       <Header theme={theme} setTheme={setTheme} />
@@ -83,6 +89,8 @@ function App() {
       <ModelLoader
         status={status}
         progress={progress}
+        selectedModelId={selectedModelId}
+        onSelectModel={setSelectedModelId}
         onInitialize={initialize}
       />
 
@@ -109,7 +117,7 @@ function App() {
       <footer className="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50">
         <div className="max-w-3xl mx-auto px-4 py-4 text-center">
           <p className="text-[10px] text-slate-400 dark:text-slate-600">
-            AI議事録メーカー v1.0 — Powered by Gemma 2B (WebGPU) —
+            AI議事録メーカー v1.1 — Powered by {modelLabel} (WebGPU) —
             全処理はデバイス内で完結
           </p>
         </div>

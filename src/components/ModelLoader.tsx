@@ -1,18 +1,133 @@
-import { Cpu, Download, CheckCircle2, XCircle, AlertTriangle, Loader2 } from "lucide-react";
-import type { ModelStatus, DownloadProgress } from "../types";
+import {
+  Cpu,
+  Download,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  Loader2,
+  Zap,
+  HardDrive,
+  Languages,
+} from "lucide-react";
+import type { ModelStatus, DownloadProgress, ModelOption } from "../types";
+import { MODEL_OPTIONS } from "../lib/models";
 
 interface ModelLoaderProps {
   status: ModelStatus;
   progress: DownloadProgress;
+  selectedModelId: string;
+  onSelectModel: (id: string) => void;
   onInitialize: () => void;
+}
+
+function JapanesePowerBar({ level }: { level: number }) {
+  return (
+    <div className="flex gap-0.5">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <div
+          key={i}
+          className={`h-1.5 w-3 rounded-full ${
+            i <= level
+              ? "bg-blue-500"
+              : "bg-slate-200 dark:bg-slate-700"
+          }`}
+        />
+      ))}
+    </div>
+  );
+}
+
+function ModelCard({
+  model,
+  selected,
+  onSelect,
+}: {
+  model: ModelOption;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      onClick={onSelect}
+      className={`w-full text-left p-3 rounded-xl border-2 transition-all ${
+        selected
+          ? "border-blue-500 bg-blue-50/50 dark:bg-blue-950/30 shadow-sm"
+          : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-slate-300 dark:hover:border-slate-600"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span
+              className={`text-sm font-bold ${
+                selected
+                  ? "text-blue-700 dark:text-blue-300"
+                  : "text-slate-800 dark:text-slate-200"
+              }`}
+            >
+              {model.label}
+            </span>
+            {model.badge && (
+              <span
+                className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                  model.badge === "おすすめ"
+                    ? "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300"
+                    : model.badge === "最軽量"
+                      ? "bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300"
+                      : "bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300"
+                }`}
+              >
+                {model.badge}
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            {model.description}
+          </p>
+        </div>
+        <div
+          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 ${
+            selected
+              ? "border-blue-500 bg-blue-500"
+              : "border-slate-300 dark:border-slate-600"
+          }`}
+        >
+          {selected && (
+            <div className="w-2 h-2 rounded-full bg-white" />
+          )}
+        </div>
+      </div>
+
+      {/* Stats row */}
+      <div className="flex items-center gap-4 mt-2 flex-wrap">
+        <div className="flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400">
+          <HardDrive size={10} />
+          <span>~{model.downloadSizeMB >= 1000 ? `${(model.downloadSizeMB / 1000).toFixed(1)}GB` : `${model.downloadSizeMB}MB`}</span>
+        </div>
+        <div className="flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400">
+          <Zap size={10} />
+          <span>{model.vramMB >= 1000 ? `${(model.vramMB / 1000).toFixed(1)}GB` : `${model.vramMB}MB`} VRAM</span>
+        </div>
+        <div className="flex items-center gap-1.5 text-[10px] text-slate-500 dark:text-slate-400">
+          <Languages size={10} />
+          <span>日本語</span>
+          <JapanesePowerBar level={model.japanesePower} />
+        </div>
+      </div>
+    </button>
+  );
 }
 
 export default function ModelLoader({
   status,
   progress,
+  selectedModelId,
+  onSelectModel,
   onInitialize,
 }: ModelLoaderProps) {
   if (status === "ready") return null;
+
+  const selectedModel = MODEL_OPTIONS.find((m) => m.id === selectedModelId);
 
   return (
     <div className="max-w-3xl mx-auto px-4 mt-6">
@@ -38,28 +153,50 @@ export default function ModelLoader({
           </div>
         )}
 
-        {/* Idle - Ready to download */}
+        {/* Idle - Model selection + download */}
         {status === "idle" && (
-          <div className="p-6 text-center">
-            <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-blue-50 dark:bg-blue-950/50 flex items-center justify-center">
-              <Cpu size={28} className="text-blue-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/50 flex items-center justify-center">
+                <Cpu size={20} className="text-blue-500" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  AIモデルを選択
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  デバイスの性能に合わせてモデルを選んでください
+                </p>
+              </div>
             </div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-              AIモデルの準備
-            </h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">
-              Gemma 2B モデルをデバイスにダウンロードします。
-            </p>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mb-5">
-              初回のみ約1.5GBのダウンロードが必要です（2回目以降はキャッシュ済み）
-            </p>
+
+            {/* Model list */}
+            <div className="space-y-2 mb-5">
+              {MODEL_OPTIONS.map((model) => (
+                <ModelCard
+                  key={model.id}
+                  model={model}
+                  selected={selectedModelId === model.id}
+                  onSelect={() => onSelectModel(model.id)}
+                />
+              ))}
+            </div>
+
+            {/* Download button */}
             <button
               onClick={onInitialize}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold text-sm shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 active:scale-[0.98] transition-all"
+              className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold text-sm shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 active:scale-[0.98] transition-all"
             >
               <Download size={18} />
-              モデルをダウンロード
+              {selectedModel?.label} をダウンロード
+              <span className="text-blue-200 text-xs font-normal">
+                (~{selectedModel && selectedModel.downloadSizeMB >= 1000 ? `${(selectedModel.downloadSizeMB / 1000).toFixed(1)}GB` : `${selectedModel?.downloadSizeMB}MB`})
+              </span>
             </button>
+
+            <p className="text-center text-[10px] text-slate-400 dark:text-slate-500 mt-2">
+              初回のみダウンロードが必要です（2回目以降はキャッシュ済み）
+            </p>
           </div>
         )}
 
@@ -85,7 +222,7 @@ export default function ModelLoader({
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                  AIモデルを準備中...
+                  {selectedModel?.label} を準備中...
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
                   {progress.text || "初期化中..."}
