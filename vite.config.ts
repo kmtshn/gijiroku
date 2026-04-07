@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
-  base: "/gijiroku/",
+  base: "./",
   plugins: [
     react(),
     tailwindcss(),
@@ -20,8 +20,8 @@ export default defineConfig({
         background_color: "#0f172a",
         display: "standalone",
         orientation: "portrait",
-        scope: "/gijiroku/",
-        start_url: "/gijiroku/",
+        scope: "./",
+        start_url: "./",
         icons: [
           {
             src: "pwa-192x192.png",
