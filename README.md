@@ -1,73 +1,117 @@
-# React + TypeScript + Vite
+# AI議事録メーカー
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+完全オンデバイスAIによる商談メモ・議事録自動整形PWAです。  
+入力したデータは一切外部サーバーに送信されません。
 
-Currently, two official plugins are available:
+**https://kmtshn.github.io/gijiroku/**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## 特徴
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **完全オンデバイスAI** — ブラウザ内のWebGPUでGemma 2Bモデルを実行。API通信なし
+- **プライバシー保護** — 全データがデバイス内で処理され、外部に一切送信されない
+- **PWA対応** — ホーム画面に追加してネイティブアプリのように使用可能
+- **オフライン動作** — モデルダウンロード後はオフラインでも動作
+- **ダーク/ライトモード** — システム連動 + 手動切替
 
-## Expanding the ESLint configuration
+## 出力フォーマット
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+雑多な商談メモを入力すると、AIが以下の形式で自動整形します：
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+```
+【要約】
+会議・商談の概要を3〜5文で簡潔にまとめ
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+【決定事項】
+・決まったことを箇条書き
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+【ネクストアクション（担当者・期限）】
+・担当者と期限を明記した箇条書き
+
+【次回アジェンダ】
+・次回の会議で話すべき議題
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 技術スタック
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+| カテゴリ | 技術 |
+|----------|------|
+| フレームワーク | React 19 + TypeScript |
+| ビルドツール | Vite 8 |
+| UI | Tailwind CSS 4 + Lucide React |
+| AIエンジン | WebLLM (mlc-ai) |
+| AIモデル | gemma-2-2b-it-q4f16_1-MLC |
+| PWA | vite-plugin-pwa + Workbox |
+| データ保存 | LocalStorage（ブラウザ内のみ） |
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## プロジェクト構成
+
 ```
+src/
+├── App.tsx                        # メインアプリケーション
+├── main.tsx                       # エントリーポイント
+├── index.css                      # Tailwind CSS + カスタムスタイル
+├── types/
+│   └── index.ts                   # TypeScript 型定義
+├── lib/
+│   ├── llm-engine.ts              # WebLLM 統合（モデル初期化・推論・プロンプト）
+│   └── storage.ts                 # LocalStorage 履歴管理
+├── hooks/
+│   ├── useWebLLM.ts               # モデル初期化・生成のカスタムフック
+│   └── useTheme.ts                # ダーク/ライトモード管理
+└── components/
+    ├── Header.tsx                 # ヘッダー + テーマ切替
+    ├── ModelLoader.tsx            # モデルDL進捗バー + WebGPU チェック
+    ├── MemoInput.tsx              # メモ入力エリア + 生成ボタン
+    ├── ResultOutput.tsx           # 構造化議事録出力 + コピーボタン
+    ├── HistoryPanel.tsx           # 履歴一覧（選択・削除）
+    └── PrivacyBadge.tsx           # プライバシー保護バッジ
+```
+
+## セットアップ
+
+### 必要環境
+
+- Node.js 20+
+- npm 9+
+
+### ローカル開発
+
+```bash
+# 依存パッケージのインストール
+npm install --legacy-peer-deps
+
+# 開発サーバー起動
+npm run dev
+
+# プロダクションビルド
+npm run build
+
+# ビルド結果のプレビュー
+npm run preview
+```
+
+## 使い方
+
+1. アプリを開くと「**モデルをダウンロード**」ボタンが表示されます
+2. ボタンをクリックしてGemma 2Bモデルをダウンロード（初回のみ、約1.5GB）
+3. ダウンロード完了後、テキストエリアに商談メモを入力
+4. 「**議事録を生成**」をクリック
+5. AIがストリーミングで構造化された議事録を生成
+6. 「**コピー**」ボタンで結果をクリップボードにコピー
+
+## ブラウザ対応
+
+WebGPU対応ブラウザが必要です。
+
+| ブラウザ | 対応状況 |
+|----------|----------|
+| Chrome 113+ | 対応 |
+| Edge 113+ | 対応 |
+| Chrome for Android 113+ | 対応 |
+| Safari / Firefox | 未対応（WebGPU未サポート） |
+
+## ライセンス
+
+MIT
