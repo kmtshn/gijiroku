@@ -28,8 +28,8 @@ export function useWebLLM() {
     saveSelectedModelId(id);
   }, []);
 
-  const initialize = useCallback(async (modelId?: string) => {
-    const targetModel = modelId || selectedModelId;
+  const initialize = useCallback(async () => {
+    const targetModel = selectedModelId;
 
     if (!checkWebGPUSupport()) {
       setStatus("unsupported");
