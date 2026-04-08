@@ -5,8 +5,10 @@ import MemoInput from "./components/MemoInput";
 import ResultOutput from "./components/ResultOutput";
 import HistoryPanel from "./components/HistoryPanel";
 import PrivacyBadge from "./components/PrivacyBadge";
+import InstallBanner from "./components/InstallBanner";
 import { useTheme } from "./hooks/useTheme";
 import { useWebLLM } from "./hooks/useWebLLM";
+import { usePWAInstall } from "./hooks/usePWAInstall";
 import { MODEL_OPTIONS } from "./lib/models";
 import {
   loadHistory,
@@ -31,6 +33,7 @@ function App() {
     generate,
     setOutput,
   } = useWebLLM();
+  const { canInstall, install, dismiss } = usePWAInstall();
 
   const [history, setHistory] = useState<HistoryEntry[]>([]);
 
@@ -83,7 +86,7 @@ function App() {
 
   return (
     <div className="min-h-dvh flex flex-col bg-slate-50 dark:bg-slate-950">
-      <Header theme={theme} setTheme={setTheme} />
+      <Header theme={theme} setTheme={setTheme} modelLabel={modelLabel} />
 
       {/* Model loader - shown until model is ready */}
       <ModelLoader
@@ -111,6 +114,11 @@ function App() {
             onClearAll={handleClearAllHistory}
           />
         </main>
+      )}
+
+      {/* PWA Install Banner */}
+      {canInstall && (
+        <InstallBanner onInstall={install} onDismiss={dismiss} />
       )}
 
       {/* Footer */}

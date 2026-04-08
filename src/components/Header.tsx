@@ -12,9 +12,10 @@ type Theme = "light" | "dark" | "system";
 interface HeaderProps {
   theme: Theme;
   setTheme: (t: Theme) => void;
+  modelLabel?: string;
 }
 
-export default function Header({ theme, setTheme }: HeaderProps) {
+export default function Header({ theme, setTheme, modelLabel }: HeaderProps) {
   const themeOptions: { value: Theme; icon: React.ReactNode; label: string }[] =
     [
       { value: "light", icon: <Sun size={14} />, label: "ライト" },
@@ -40,7 +41,7 @@ export default function Header({ theme, setTheme }: HeaderProps) {
                 <span>完全オンデバイス</span>
                 <span className="text-slate-300 dark:text-slate-600">|</span>
                 <Cpu size={10} className="text-blue-500" />
-                <span>Gemma 2B</span>
+                <span>{modelLabel || "AI"}</span>
               </div>
             </div>
           </div>
